@@ -1,0 +1,59 @@
+#include <DFRobot_DHT11.h>
+// #include <SoftwareSerial.h>
+#include "WiFi.h"
+#include <WifiClient.h>
+#include "ThingSpeak.h"
+DFRobot_DHT11 DHT;
+WiFiClient Client;
+#define led1 25
+#define led2 26
+#define buzzer 5
+#define temp 27
+#define smokeSensor A0
+const char* ssid = "Airtel";
+const char* password = "11112222"; // AP PASSWORD
+const char* HOST = "api.thingspeak.com";
+const char* PORT = "80";
+unsigned long channleId = 2355907;
+const char* WriteAPIKey = "AM71PBBEUW9WH2KX";
+void setup() {
+Serial.begin(115200);
+// put your setup code here, to run once:
+ThingSpeak.begin(Client);
+WiFi.begin(ssid,password);
+while(WiFi.status() != WL_CONNECTED) {
+delay(500); 
+Serial.println("connecting to WIFI...."); }
+Serial.println("Connected to WIFI");
+pinMode(buzzer, OUTPUT); 
+pinMode(led1, OUTPUT); 
+pinMode(led2, OUTPUT); 
+pinMode(smokeSensor, INPUT); 
+pinMode(temp, INPUT); 
+digitalWrite(led1,LOW); 
+digitalWrite(led2, LOW);
+digitalWrite(buzzer, LOW);
+}
+void loop() {
+DHT.read(temp);
+int tempValue DHT.temperature;
+int humidity DHT.humidity;
+int smokeValue = analogRead(smokeSensor);
+Serial.print("Temperature: "); 
+Serial.println(tempValue);
+Serial.print("SmokeValue: "); 
+Serial.println(smokeValue);
+Serial.print("HumidityValue: "); 
+Serial.println(humidity);
+delay(1000);
+ThingSpeak.writeField(channleId, 1, tempValue, WriteAPIKey); 
+ThingSpeak.writeField(channleId, 2, humidity, WriteAPIKey); 
+ThingSpeak.writeField(channleId,3, smokeValue, WriteAPIKey);
+if(tempValue > 25){ digitalWrite(led1, HIGH); }
+else{
+digitalWrite(led1, LOW); }
+if(smokeValue > 700){ digitalWrite(led2, HIGH); digitalWrite(buzzer, HIGH);
+}
+else{ digitalWrite(led2, LOW); digitalWrite(buzzer, LOW);
+}
+}
